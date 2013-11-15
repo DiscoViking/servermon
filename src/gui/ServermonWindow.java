@@ -15,6 +15,7 @@ public class ServermonWindow extends JFrame {
 	
 	public ServermonWindow(ServermonController controller) {
 		mController = controller;
+		setLayout(new BorderLayout());
 	}
 	
 	public ServermonController getController() {
@@ -25,7 +26,6 @@ public class ServermonWindow extends JFrame {
 	 * Sets up window and makes it visible.
 	 */
 	public void begin() {
-		setLayout(new BorderLayout());
 		setVisible(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		

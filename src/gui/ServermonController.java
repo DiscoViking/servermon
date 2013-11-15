@@ -3,7 +3,12 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.util.HashMap;
 
 import javax.swing.AbstractAction;
@@ -35,7 +40,29 @@ public class ServermonController {
 		
 		mWindow = new ServermonWindow(this);
 		mWindow.setAlwaysOnTop(true);
+		mWindow.setTitle("Servermon GUI");
 		
+		registerActions();
+		
+		bufferPipe = new AudioBufferPipe(10000);
+		sinkPipe = new AudioSinkPipe();
+		
+		createVisualiser();
+		mWindow.add(vis,BorderLayout.CENTER);
+		
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				mWindow.begin();
+			}
+		});
+		
+		inputPipe = new AudioDeviceInputPipe(".*What U Hear.*");
+		bufferPipe.readFrom(inputPipe);
+		sinkPipe.readFrom(bufferPipe);
+	}
+	
+	private void registerActions() {
 		Action action = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
@@ -58,26 +85,57 @@ public class ServermonController {
 		KeyStroke keyStroke = KeyStroke.getKeyStroke(keyStrokeAndKey);
 		mWindow.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, keyStrokeAndKey);
 		mWindow.getRootPane().getActionMap().put(keyStrokeAndKey, action);
-		
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				mWindow.begin();
-			}
-		});
-		
-		inputPipe = new AudioDeviceInputPipe(".*What U Hear.*");
-		bufferPipe = new AudioBufferPipe(10000);
-		sinkPipe = new AudioSinkPipe();
-		
-		bufferPipe.readFrom(inputPipe);
-		sinkPipe.readFrom(bufferPipe);
-		
+	}
+	
+	private void createVisualiser() {
 		vis = new RadialFFTFrequencyVisualiser(bufferPipe.getBuffer());
 		vis.setBackground(Color.BLACK);
 		vis.setForeground(Color.GREEN);
 		vis.setPreferredSize(new Dimension(300,300));
-		mWindow.add(vis,BorderLayout.CENTER);
+		
+		MouseAdapter mouseListener = new MouseAdapter() {
+			private int dx = 0;
+			private int dy = 0;
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				Point windowLoc = mWindow.getLocation();
+				Point mouseLoc = e.getLocationOnScreen();
+				
+				dx = mouseLoc.x - windowLoc.x;
+				dy = mouseLoc.y - windowLoc.y;
+			}
+			
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				Point mouseLoc = e.getLocationOnScreen();
+				mWindow.setLocation(mouseLoc.x - dx, mouseLoc.y - dy);
+			}
+			
+			@Override
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				int rot = e.getWheelRotation();
+				
+				if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) 
+						== InputEvent.CTRL_DOWN_MASK) {
+					if (mWindow.isUndecorated()) {
+						float o = mWindow.getOpacity();
+						o = (float) Math.max(0.1, Math.min(1, o-(rot*0.1)));
+						mWindow.setOpacity(o);
+					}
+				}
+				else {
+					int w = mWindow.getWidth();
+					int h = mWindow.getHeight();
+					
+					mWindow.setSize(w+rot*5*w/h,h+rot*5*h/w);
+				}
+			}
+		};
+		
+		vis.addMouseListener(mouseListener);
+		vis.addMouseMotionListener(mouseListener);
+		vis.addMouseWheelListener(mouseListener);
 	}
 	
 	public void start() {
