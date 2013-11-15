@@ -143,8 +143,12 @@ public class ServermonController {
 	public void connect() {
 		stop();
 		inputPipe.close();
-		inputPipe = new AudioDeviceInputPipe(".*What U Hear.*");
+		inputPipe = getInputPipe();
 		bufferPipe.readFrom(inputPipe);
 		start();
+	}
+	
+	public Pipe getInputPipe() {
+		return new AudioDeviceInputPipe(".*What U Hear.*");
 	}
 }
