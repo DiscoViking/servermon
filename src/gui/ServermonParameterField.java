@@ -66,4 +66,8 @@ public class ServermonParameterField extends JPanel{
 	public String getLabelText() {
 		return mLabel.getText();
 	}
+	
+	public void setText(String text) {
+		mField.setText(text);
+	}
 }

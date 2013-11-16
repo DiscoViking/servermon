@@ -19,7 +19,9 @@ import javax.swing.SwingUtilities;
 
 import jsqueak.AudioBufferPipe;
 import jsqueak.AudioDeviceInputPipe;
+import jsqueak.AudioDeviceOutputPipe;
 import jsqueak.AudioSinkPipe;
+import jsqueak.NoiseReductionPipe;
 import jsqueak.NullPipe;
 import jsqueak.Pipe;
 import jsqueak.RadialFFTFrequencyVisualiser;
@@ -32,6 +34,7 @@ public class ServermonController {
 	private Pipe inputPipe;
 	private AudioBufferPipe bufferPipe;
 	private AudioSinkPipe sinkPipe;
+	private AudioDeviceOutputPipe outputPipe;
 	private Visualiser vis;
 	private UpdaterThread mThread;
 	
@@ -39,13 +42,14 @@ public class ServermonController {
 		parameters = new HashMap<String,ServermonParameterField>();
 		
 		mWindow = new ServermonWindow(this);
-		mWindow.setAlwaysOnTop(true);
+		//mWindow.setAlwaysOnTop(true);
 		mWindow.setTitle("Servermon GUI");
 		
 		registerActions();
 		
 		bufferPipe = new AudioBufferPipe(10000);
 		sinkPipe = new AudioSinkPipe();
+		outputPipe = new AudioDeviceOutputPipe(".*Primary Sound Driver.*");
 		
 		createVisualiser();
 		mWindow.add(vis,BorderLayout.CENTER);
@@ -57,9 +61,10 @@ public class ServermonController {
 			}
 		});
 		
-		inputPipe = new AudioDeviceInputPipe(".*What U Hear.*");
+		inputPipe = new AudioDeviceInputPipe(".*Primary Sound Capture.*");
 		bufferPipe.readFrom(inputPipe);
 		sinkPipe.readFrom(bufferPipe);
+		outputPipe.readFrom(bufferPipe);
 	}
 	
 	private void registerActions() {
@@ -71,11 +76,13 @@ public class ServermonController {
 					mWindow.setOpacity(1.0f);
 					mWindow.setUndecorated(false);
 					mWindow.showSettings();
+					mWindow.showMenuBar();
 				}
 				else {
 					mWindow.setUndecorated(true);
 					mWindow.setOpacity(0.5f);
 					mWindow.hideSettings();
+					mWindow.hideMenuBar();
 				}
 				mWindow.addNotify();
 				mWindow.getRootPane().requestFocus();
@@ -162,7 +169,7 @@ public class ServermonController {
 			running = true;
 			int ii = 0;
 			while (running){
-				sinkPipe.pump();
+				outputPipe.pump();
 				
 				//Do all drawing on the Event thread
 				if (ii % 2 == 0) {
@@ -208,5 +215,38 @@ public class ServermonController {
 	
 	public Pipe getInputPipe() {
 		return new AudioDeviceInputPipe(".*What U Hear.*");
+	}
+	
+	public void openServerPicker() {
+		final ServerPicker p = new ServerPicker(this);
+		SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+            	p.begin();
+            }
+        });
+	}
+	
+	public void openMonitorPicker() {
+		final MonitorPicker p = new MonitorPicker(this);
+		SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+            	p.begin();
+            }
+        });
+	}
+	
+	public void loadServer(ServerInfo server) {
+		if (server != null) {
+			parameters.get("Hostname: ").setText(server.hostname);
+			parameters.get("Username: ").setText(server.username);
+		}
+	}
+	
+	public void loadMonitor(MonitorInfo monitor) {
+		if (monitor != null) {
+			parameters.get("Filename: ").setText(monitor.filename);
+			parameters.get("Regex: ").setText(monitor.regex);
+			parameters.get("Group #: ").setText(String.valueOf(monitor.group));
+		}
 	}
 }

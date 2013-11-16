@@ -1,12 +1,17 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 
 public class ServermonWindow extends JFrame {
@@ -32,11 +37,41 @@ public class ServermonWindow extends JFrame {
 		createBufferStrategy(2);
 		
 		add(createSettingsPanel(),BorderLayout.NORTH);
+		createMenu();
 		pack();
 		//this.setResizable(false);
 	}
 	
-	public JPanel createSettingsPanel() {
+	private void createMenu() {
+		JMenuBar menuBar = new JMenuBar();
+		JMenu fileMenu = new JMenu("File");
+		menuBar.add(fileMenu);
+		
+		JMenuItem menuItem;
+		menuItem = new JMenuItem("Open Server Picker");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mController.openServerPicker();
+			}
+		});
+		
+		fileMenu.add(menuItem);
+		
+		menuItem = new JMenuItem("Open Monitor Picker");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				mController.openMonitorPicker();
+			}
+		});
+		
+		fileMenu.add(menuItem);
+		
+		this.setJMenuBar(menuBar);
+	}
+	
+	private JPanel createSettingsPanel() {
 		mSettingsPanel = new JPanel();
 		mSettingsPanel.setLayout(new BoxLayout(mSettingsPanel, BoxLayout.X_AXIS));
 		
@@ -95,5 +130,13 @@ public class ServermonWindow extends JFrame {
 	
 	public void showSettings() {
 		mSettingsPanel.setVisible(true);
+	}
+	
+	public void hideMenuBar() {
+		this.getJMenuBar().setVisible(false);
+	}
+	
+	public void showMenuBar() {
+		this.getJMenuBar().setVisible(true);
 	}
 }
