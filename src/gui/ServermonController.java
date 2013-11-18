@@ -34,7 +34,7 @@ public class ServermonController {
 	private Pipe inputPipe;
 	private AudioBufferPipe bufferPipe;
 	private AudioSinkPipe sinkPipe;
-	private AudioDeviceOutputPipe outputPipe;
+	private AudioSinkPipe outputPipe;
 	private Visualiser vis;
 	private UpdaterThread mThread;
 	
@@ -49,7 +49,7 @@ public class ServermonController {
 		
 		bufferPipe = new AudioBufferPipe(10000);
 		sinkPipe = new AudioSinkPipe();
-		outputPipe = new AudioDeviceOutputPipe(".*Primary Sound Driver.*");
+		outputPipe = new AudioSinkPipe();
 		
 		createVisualiser();
 		mWindow.add(vis,BorderLayout.CENTER);
@@ -61,7 +61,7 @@ public class ServermonController {
 			}
 		});
 		
-		inputPipe = new AudioDeviceInputPipe(".*Primary Sound Capture.*");
+		inputPipe = new AudioDeviceInputPipe(".*What U Hear.*");
 		bufferPipe.readFrom(inputPipe);
 		sinkPipe.readFrom(bufferPipe);
 		outputPipe.readFrom(bufferPipe);
