@@ -17,6 +17,9 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
+import visualisation.RadialFFTFrequencyVisualiser;
+import visualisation.Visualiser;
+
 import jsqueak.AudioBufferPipe;
 import jsqueak.AudioDeviceInputPipe;
 import jsqueak.AudioDeviceOutputPipe;
@@ -24,8 +27,6 @@ import jsqueak.AudioSinkPipe;
 import jsqueak.NoiseReductionPipe;
 import jsqueak.NullPipe;
 import jsqueak.Pipe;
-import jsqueak.RadialFFTFrequencyVisualiser;
-import jsqueak.Visualiser;
 
 
 public class ServermonController {
